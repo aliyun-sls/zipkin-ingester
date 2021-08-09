@@ -28,7 +28,5 @@ export TOPIC=<YOUR_TOPIC>
 -kafka_consumer_group ${CONSUMER_GROUP} -topic ${TOPIC}\
 ```
 
-
-
-Have fine! ::heart::
+Have fine! :heart:
 
