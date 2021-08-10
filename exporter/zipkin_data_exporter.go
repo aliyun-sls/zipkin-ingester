@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/aliyun-sls/zipkin-ingester/configure"
+	"log"
 	"net/http"
 )
 
@@ -30,7 +31,8 @@ func (z zipkinDataExporterImpl) SendData(data []byte) error {
 
 	req, err := http.NewRequest("POST", z.requestURL, bytes.NewBuffer(data))
 	if err != nil {
-		fmt.Printf("aaaa")
+		log.Println("Failed to create request post")
+		return err
 	}
 
 	req.Header.Set("x-sls-otel-project", z.configure.Project)
@@ -40,9 +42,9 @@ func (z zipkinDataExporterImpl) SendData(data []byte) error {
 
 	client := &http.Client{}
 	if resp, err := client.Do(req); err == nil {
-		fmt.Printf(fmt.Sprintf("%d", resp.StatusCode))
 		return nil
 	} else {
+		log.Println(fmt.Sprintf("Failed to send data. StatuCode:%s, ErrorMessage: %s", resp.StatusCode, resp.Header.Get("errorMessage")))
 		return err
 	}
 }

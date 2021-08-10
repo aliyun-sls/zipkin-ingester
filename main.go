@@ -13,23 +13,23 @@ import (
 )
 
 var (
-	bootstrapservers string
+	bootstrapServers string
 	consumerGroup    string
 	topic            string
 	project          string
 	instance         string
-	accesskey        string
-	accesssecret     string
+	accessKey        string
+	accessSecret     string
 	endpoint         string
 )
 
 func init() {
 	flag.StringVar(&project, "project", "", "The Project name")
 	flag.StringVar(&instance, "instance", "", "The instance name")
-	flag.StringVar(&accesskey, "access_key", "", "The access key")
-	flag.StringVar(&accesssecret, "access_secret", "", "The access secret")
+	flag.StringVar(&accessKey, "access_key", "", "The access key")
+	flag.StringVar(&accessSecret, "access_secret", "", "The access secret")
 	flag.StringVar(&endpoint, "endpoint", "", "The endpoint")
-	flag.StringVar(&bootstrapservers, "kafka_bootstrap_services", "", "The bootstrap services")
+	flag.StringVar(&bootstrapServers, "kafka_bootstrap_services", "", "The bootstrap services")
 	flag.StringVar(&consumerGroup, "kafka_consumer_group", "", "The consumer group")
 	flag.StringVar(&topic, "kafka_topic", "", "The kafka topic")
 	flag.Parse()
@@ -69,13 +69,13 @@ func main() {
 func readConfiguration() *configure.Configuration {
 
 	config := &configure.Configuration{
-		BootstrapServers: bootstrapservers,
-		AutoOffsetRest:   "newest",
+		BootstrapServers: bootstrapServers,
+		AutoOffsetRest:   "latest",
 		Topic:            strings.Split(topic, ","),
 		Project:          project,
 		Instance:         instance,
-		AccessKey:        accesskey,
-		AccessSecret:     accesssecret,
+		AccessKey:        accessKey,
+		AccessSecret:     accessSecret,
 		Endpoint:         endpoint,
 		GroupID: func(consumerGroup string) string {
 			if consumerGroup == "" {
