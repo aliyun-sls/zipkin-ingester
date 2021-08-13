@@ -41,10 +41,11 @@ func (z zipkinDataExporterImpl) SendData(data []byte, sugar *zap.SugaredLogger) 
 	req.Header.Set("x-sls-otel-ak-secret", z.configure.AccessSecret)
 
 	client := &http.Client{}
-	if resp, err := client.Do(req); err == nil {
+	if resp, e := client.Do(req); e == nil {
+		sugar.Info("Send data successfully", "requestID", resp.Header.Get("x-log-requestid"))
 		return nil
 	} else {
-		sugar.Warn("Failed to send data", "StatuCode", resp.StatusCode, " ErrorMessage: %s", resp.Header.Get("errorMessage"))
-		return err
+		sugar.Warn("Failed to send data", "StatusCode", resp.StatusCode, " ErrorMessage", resp.Header.Get("errorMessage"))
+		return e
 	}
 }

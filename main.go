@@ -63,8 +63,8 @@ func main() {
 			fmt.Printf("Caught signal %v: terminating\n", sig)
 			run = false
 		default:
-			data, err := ingest.IngestTrace()
-			if err == nil && data != nil {
+			data, e := ingest.IngestTrace(sugar)
+			if e == nil && data != nil {
 				zipkinClient.SendData(data, sugar)
 			}
 		}

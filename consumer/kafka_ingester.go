@@ -7,7 +7,7 @@ import (
 )
 
 type Ingester interface {
-	IngestTrace() ([]byte, error)
+	IngestTrace(*zap.SugaredLogger) ([]byte, error)
 	Close()
 }
 
@@ -40,7 +40,7 @@ func NewIngester(config *configure.Configuration, sugar *zap.SugaredLogger) (Ing
 	}
 }
 
-func (i ingesterImpl) IngestTrace() ([]byte, error) {
+func (i ingesterImpl) IngestTrace(suager *zap.SugaredLogger) ([]byte, error) {
 	ev := i.consumer.Poll(100)
 	if ev == nil {
 		return nil, nil
@@ -48,8 +48,10 @@ func (i ingesterImpl) IngestTrace() ([]byte, error) {
 
 	switch e := ev.(type) {
 	case *kafka.Message:
+		suager.Info("Received zipkin data.", "data length", len(e.Value))
 		return e.Value, nil
 	case kafka.Error:
+		suager.Warn("Receive a kafka error.", "Kafka error code", e.Code())
 		if e.Code() == kafka.ErrAllBrokersDown {
 			// TODO retry
 		}
