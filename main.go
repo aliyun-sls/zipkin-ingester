@@ -25,14 +25,14 @@ var (
 )
 
 func init() {
-	flag.StringVar(&project, "project", "", "The Project name")
-	flag.StringVar(&instance, "instance", "", "The instance name")
-	flag.StringVar(&accessKey, "access_key", "", "The access key")
-	flag.StringVar(&accessSecret, "access_secret", "", "The access secret")
-	flag.StringVar(&endpoint, "endpoint", "", "The endpoint")
-	flag.StringVar(&bootstrapServers, "kafka_bootstrap_services", "", "The bootstrap services")
-	flag.StringVar(&consumerGroup, "kafka_consumer_group", "", "The consumer group")
-	flag.StringVar(&topic, "kafka_topic", "", "The kafka topic")
+	flag.StringVar(&project, "project", os.Getenv("PROJECT"), "The Project name")
+	flag.StringVar(&instance, "instance", os.Getenv("INSTANCE"), "The instance name")
+	flag.StringVar(&accessKey, "access_key", os.Getenv("ACCESS_KEY"), "The access key")
+	flag.StringVar(&accessSecret, "access_secret", os.Getenv("ACCESS_SECRET"), "The access secret")
+	flag.StringVar(&endpoint, "endpoint", os.Getenv("ENDPOINT"), "The endpoint")
+	flag.StringVar(&bootstrapServers, "kafka_bootstrap_services", os.Getenv("BOOTSTRAP_SERVICE"), "The bootstrap services")
+	flag.StringVar(&consumerGroup, "kafka_consumer_group", os.Getenv("CONSUMER_GROUP"), "The consumer group")
+	flag.StringVar(&topic, "kafka_topic", os.Getenv("TOPIC"), "The kafka topic")
 	flag.Parse()
 }
 
