@@ -23,7 +23,7 @@ export BOOTSTRAP_SERVICE=<YOUR_BOOTSTRAP_SERVICE>
 export CONSUMER_GROUP=<YOUR_CONSUMER_GROUP>
 export TOPIC=<YOUR_TOPIC>
 
-./zipkin-ingester -project ${PROJECT} -instance ${INSTANCE} -access_key <YOUR_ACCESS_KEY> \
+./zipkin-ingester -project ${PROJECT} -instance ${INSTANCE} -access_key ${ACCESS_KEY} \
 -access_secret ${ACCESS_SECRET} -endpoint ${endpoint} -kafka_bootstrap_services ${BOOTSTRAP_SERVICE} \
 -kafka_consumer_group ${CONSUMER_GROUP} -kafka_topic ${TOPIC}
 ```
