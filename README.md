@@ -25,7 +25,7 @@ export TOPIC=<YOUR_TOPIC>
 
 ./zipkin-ingester -project ${PROJECT} -instance ${INSTANCE} -access_key <YOUR_ACCESS_KEY> \
 -access_secret ${ACCESS_SECRET} -endpoint ${endpoint} -kafka_bootstrap_services ${BOOTSTRAP_SERVICE} \
--kafka_consumer_group ${CONSUMER_GROUP} -topic ${TOPIC}
+-kafka_consumer_group ${CONSUMER_GROUP} -kafka_topic ${TOPIC}
 ```
 
 Have fine! :heart:
