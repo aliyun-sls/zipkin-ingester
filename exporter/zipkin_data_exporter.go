@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/aliyun-sls/zipkin-ingester/configure"
 	"go.uber.org/zap"
+	"io"
 	"net/http"
 )
 
@@ -42,7 +43,12 @@ func (z zipkinDataExporterImpl) SendData(data []byte, sugar *zap.SugaredLogger) 
 
 	client := &http.Client{}
 	if resp, e := client.Do(req); e == nil {
-		sugar.Info("Send data successfully", "requestID", resp.Header.Get("x-log-requestid"))
+		if resp.StatusCode != 200 {
+			d, _ := io.ReadAll(resp.Body)
+			sugar.Warn("Failed to send data", "StatusCode", resp.StatusCode, "requestURL", req.URL, "response body", string(d))
+		} else {
+			sugar.Info("Send data successfully")
+		}
 		return nil
 	} else {
 		sugar.Warn("Failed to send data", "StatusCode", resp.StatusCode, " ErrorMessage", resp.Header.Get("errorMessage"))
