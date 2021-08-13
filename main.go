@@ -6,6 +6,7 @@ import (
 	"github.com/aliyun-sls/zipkin-ingester/configure"
 	"github.com/aliyun-sls/zipkin-ingester/consumer"
 	"github.com/aliyun-sls/zipkin-ingester/exporter"
+	"go.uber.org/zap"
 	"os"
 	"os/signal"
 	"strings"
@@ -36,6 +37,10 @@ func init() {
 }
 
 func main() {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+	sugar := logger.Sugar()
+
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
 
@@ -43,10 +48,10 @@ func main() {
 	var err error
 	run := true
 
-	config := readConfiguration()
+	config := readConfiguration(sugar)
 	zipkinClient := exporter.NewZipkinExporter(config)
-	if ingest, err = consumer.NewIngester(config); err != nil {
-		fmt.Printf("Failed to init kafka.\n %v", err)
+	if ingest, err = consumer.NewIngester(config, sugar); err != nil {
+		sugar.Warn("Failed to init kafka.", "exception", err)
 		os.Exit(1)
 	} else {
 		defer ingest.Close()
@@ -60,14 +65,13 @@ func main() {
 		default:
 			data, err := ingest.IngestTrace()
 			if err == nil && data != nil {
-				zipkinClient.SendData(data)
+				zipkinClient.SendData(data, sugar)
 			}
 		}
 	}
 }
 
-func readConfiguration() *configure.Configuration {
-
+func readConfiguration(sugared *zap.SugaredLogger) *configure.Configuration {
 	config := &configure.Configuration{
 		BootstrapServers: bootstrapServers,
 		AutoOffsetRest:   "latest",
@@ -84,5 +88,53 @@ func readConfiguration() *configure.Configuration {
 			return consumerGroup
 		}(consumerGroup),
 	}
+
+	checkParameters(sugared, config)
+
+	sugared.Info("Configuration:",
+		"BootstrapServers", bootstrapServers,
+		"Topic", config.Topic,
+		"Project", config.Project,
+		"Instance", config.Instance,
+		"AccessKey", config.AccessKey,
+		"Endpoint", config.Endpoint,
+	)
 	return config
+}
+
+func checkParameters(sugared *zap.SugaredLogger, config *configure.Configuration) {
+	if config.BootstrapServers == "" {
+		sugared.Warn("The bootstrap servers is empty.")
+		panic("The bootstrap servers is empty")
+	}
+
+	if len(config.Topic) == 0 {
+		sugared.Warn("The topic is empty.")
+		panic("The topic is empty.")
+	}
+
+	if config.Project == "" {
+		sugared.Warn("The project is empty.")
+		panic("The project is empty.")
+	}
+
+	if config.Instance == "" {
+		sugared.Warn("The instance is empty.")
+		panic("The instance is empty.")
+	}
+
+	if config.AccessKey == "" {
+		sugared.Warn("The access key is empty.")
+		panic("The access key is empty")
+	}
+
+	if config.AccessSecret == "" {
+		sugared.Warn("The access secret is empty.")
+		panic("The access secret is empty")
+	}
+
+	if config.Endpoint == "" {
+		sugared.Warn("The endpoint is empty.")
+		panic("The endpoint is empty")
+	}
 }

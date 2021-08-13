@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/aliyun-sls/zipkin-ingester/configure"
-	"log"
+	"go.uber.org/zap"
 	"net/http"
 )
 
 type ZipkinDataExporter interface {
-	SendData(data []byte) error
+	SendData(data []byte, sugar *zap.SugaredLogger) error
 }
 
 func NewZipkinExporter(c *configure.Configuration) ZipkinDataExporter {
@@ -24,14 +24,14 @@ type zipkinDataExporterImpl struct {
 	configure  *configure.Configuration
 }
 
-func (z zipkinDataExporterImpl) SendData(data []byte) error {
+func (z zipkinDataExporterImpl) SendData(data []byte, sugar *zap.SugaredLogger) error {
 	if data == nil || len(data) == 0 {
 		return nil
 	}
 
 	req, err := http.NewRequest("POST", z.requestURL, bytes.NewBuffer(data))
 	if err != nil {
-		log.Println("Failed to create request post")
+		sugar.Warn("Failed to create request post")
 		return err
 	}
 
@@ -44,7 +44,7 @@ func (z zipkinDataExporterImpl) SendData(data []byte) error {
 	if resp, err := client.Do(req); err == nil {
 		return nil
 	} else {
-		log.Println(fmt.Sprintf("Failed to send data. StatuCode:%s, ErrorMessage: %s", resp.StatusCode, resp.Header.Get("errorMessage")))
+		sugar.Warn("Failed to send data", "StatuCode", resp.StatusCode, " ErrorMessage: %s", resp.Header.Get("errorMessage"))
 		return err
 	}
 }
