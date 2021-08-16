@@ -51,13 +51,12 @@ func (i ingesterImpl) IngestTrace(suager *zap.SugaredLogger) ([]byte, error) {
 		suager.Info("Received zipkin data.", "data length", len(e.Value))
 		return e.Value, nil
 	case kafka.Error:
-		suager.Warn("Receive a kafka error.", "Kafka error code", e.Code())
+		suager.Warn("Receive a kafka error.", "Kafka error code", e.Code(), "exception", e)
 		if e.Code() == kafka.ErrAllBrokersDown {
 			// TODO retry
 		}
 		return nil, e
 	default:
+		return nil, nil
 	}
-
-	return nil, nil
 }

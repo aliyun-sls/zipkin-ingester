@@ -13,7 +13,8 @@ type ZipkinDataExporter interface {
 	SendData(data []byte, sugar *zap.SugaredLogger) error
 }
 
-func NewZipkinExporter(c *configure.Configuration) ZipkinDataExporter {
+func NewZipkinExporter(c *configure.Configuration, sugar *zap.SugaredLogger) ZipkinDataExporter {
+	sugar.Info("zipkin exporter information", "request url", fmt.Sprintf("https://%s.%s/zipkin/api/v2/spans", c.Project, c.Endpoint))
 	return &zipkinDataExporterImpl{
 		requestURL: fmt.Sprintf("https://%s.%s/zipkin/api/v2/spans", c.Project, c.Endpoint),
 		configure:  c,

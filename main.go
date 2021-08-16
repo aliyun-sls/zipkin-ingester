@@ -49,9 +49,9 @@ func main() {
 	run := true
 
 	config := readConfiguration(sugar)
-	zipkinClient := exporter.NewZipkinExporter(config)
+	zipkinClient := exporter.NewZipkinExporter(config, sugar)
 	if ingest, err = consumer.NewIngester(config, sugar); err != nil {
-		sugar.Warn("Failed to init kafka.", "exception", err)
+		sugar.Error("Failed to init kafka.", "exception", err)
 		os.Exit(1)
 	} else {
 		defer ingest.Close()
