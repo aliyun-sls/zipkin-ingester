@@ -71,7 +71,7 @@ func main() {
 
 			if e == nil && audit {
 				if spans, e1 := zipkin_proto3.ParseSpans(data, false); e1 != nil {
-					sugar.Warn("Failed to parse spans ", " Exception ", e1)
+					sugar.Warn("Failed to parse spans ", " Exception ", e1, " originData:", string(data))
 				} else {
 					for _, span := range spans {
 						sugar.Info("Receive Span", "TraceID: ", span.TraceID, " SpanID: ", span.ID, " parentSpanID: ", span.ParentID, " name: ", span.Name, "originData:", string(data))
