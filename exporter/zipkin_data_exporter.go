@@ -10,7 +10,7 @@ import (
 )
 
 type ZipkinDataExporter interface {
-	SendData(data []byte, sugar *zap.SugaredLogger) error
+	SendData(data []byte, sugar *zap.SugaredLogger, proto string) error
 }
 
 func NewZipkinExporter(c *configure.Configuration, sugar *zap.SugaredLogger) ZipkinDataExporter {
@@ -26,7 +26,7 @@ type zipkinDataExporterImpl struct {
 	configure  *configure.Configuration
 }
 
-func (z zipkinDataExporterImpl) SendData(data []byte, sugar *zap.SugaredLogger) error {
+func (z zipkinDataExporterImpl) SendData(data []byte, sugar *zap.SugaredLogger, proto string) error {
 	if data == nil || len(data) == 0 {
 		return nil
 	}
@@ -40,8 +40,8 @@ func (z zipkinDataExporterImpl) SendData(data []byte, sugar *zap.SugaredLogger) 
 	req.Header.Set("x-sls-otel-project", z.configure.Project)
 	req.Header.Set("x-sls-otel-instance-id", z.configure.Instance)
 	req.Header.Set("x-sls-otel-ak-id", z.configure.AccessKey)
-	req.Header.Set("Content-Type", "application/x-protobuf")
 	req.Header.Set("x-sls-otel-ak-secret", z.configure.AccessSecret)
+	req.Header.Set("Content-Type", proto)
 
 	client := &http.Client{}
 	if resp, e := client.Do(req); e == nil {

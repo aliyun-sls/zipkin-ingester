@@ -22,7 +22,10 @@ var (
 	accessKey        string
 	accessSecret     string
 	endpoint         string
+	protoFlag        string
 )
+
+const SendProto = "Proto3"
 
 func init() {
 	flag.StringVar(&project, "project", os.Getenv("PROJECT"), "The Project name")
@@ -33,6 +36,7 @@ func init() {
 	flag.StringVar(&bootstrapServers, "kafka_bootstrap_services", os.Getenv("BOOTSTRAP_SERVICE"), "The bootstrap services")
 	flag.StringVar(&consumerGroup, "kafka_consumer_group", os.Getenv("CONSUMER_GROUP"), "The consumer group")
 	flag.StringVar(&topic, "kafka_topic", os.Getenv("TOPIC"), "The kafka topic")
+	flag.StringVar(&protoFlag, "send_proto", SendProto, "The kafka topic")
 	flag.Parse()
 }
 
@@ -46,7 +50,12 @@ func main() {
 
 	var ingest consumer.Ingester
 	var err error
+	sendProto := ""
 	run := true
+
+	if protoFlag == SendProto {
+		sendProto = "application/x-protobuf"
+	}
 
 	config := readConfiguration(sugar)
 	zipkinClient := exporter.NewZipkinExporter(config, sugar)
@@ -65,7 +74,7 @@ func main() {
 		default:
 			data, e := ingest.IngestTrace(sugar)
 			if e == nil && data != nil {
-				zipkinClient.SendData(data, sugar)
+				zipkinClient.SendData(data, sugar, sendProto)
 			}
 		}
 	}
@@ -137,4 +146,5 @@ func checkParameters(sugared *zap.SugaredLogger, config *configure.Configuration
 		sugared.Warn("The endpoint is empty.")
 		panic("The endpoint is empty")
 	}
+
 }
