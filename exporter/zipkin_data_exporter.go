@@ -45,7 +45,7 @@ func (z zipkinDataExporterImpl) SendData(data []byte, sugar *zap.SugaredLogger) 
 
 	client := &http.Client{}
 	if resp, e := client.Do(req); e == nil {
-		if resp.StatusCode != 200 || resp.StatusCode != 202 {
+		if resp.StatusCode != 200 && resp.StatusCode != 202 {
 			d, _ := io.ReadAll(resp.Body)
 			sugar.Warn("Failed to send data", "StatusCode", resp.StatusCode, "requestURL", req.URL, "response body", string(d))
 		} else {

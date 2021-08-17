@@ -6,9 +6,11 @@ import (
 	"github.com/aliyun-sls/zipkin-ingester/configure"
 	"github.com/aliyun-sls/zipkin-ingester/consumer"
 	"github.com/aliyun-sls/zipkin-ingester/exporter"
+	"github.com/openzipkin/zipkin-go/proto/zipkin_proto3"
 	"go.uber.org/zap"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 )
@@ -22,6 +24,7 @@ var (
 	accessKey        string
 	accessSecret     string
 	endpoint         string
+	audit            bool
 )
 
 func init() {
@@ -40,6 +43,7 @@ func main() {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 	sugar := logger.Sugar()
+	audit = getAuditMode()
 
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
@@ -64,6 +68,17 @@ func main() {
 			run = false
 		default:
 			data, e := ingest.IngestTrace(sugar)
+
+			if e == nil && audit {
+				if spans, e1 := zipkin_proto3.ParseSpans(data, false); e1 != nil {
+					sugar.Warn("Failed to parse spans ", " Exception ", e1)
+				} else {
+					for _, span := range spans {
+						sugar.Info("Receive Span", "TraceID: ", span.TraceID, " SpanID: ", span.ID, " parentSpanID: ", span.ParentID, " name: ", span.Name, "originData:", string(data))
+					}
+				}
+			}
+
 			if e == nil && data != nil {
 				zipkinClient.SendData(data, sugar)
 			}
@@ -71,6 +86,13 @@ func main() {
 	}
 }
 
+func getAuditMode() bool {
+	if auditMode, err := strconv.ParseBool(os.Getenv("AUDIT_MODE")); err != nil {
+		return false
+	} else {
+		return auditMode
+	}
+}
 func readConfiguration(sugared *zap.SugaredLogger) *configure.Configuration {
 	config := &configure.Configuration{
 		BootstrapServers: bootstrapServers,
