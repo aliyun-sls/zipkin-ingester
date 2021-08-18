@@ -5,9 +5,9 @@ import (
 	"flag"
 	"fmt"
 	"github.com/aliyun-sls/zipkin-ingester/configure"
-	"github.com/aliyun-sls/zipkin-ingester/consumer"
+	"github.com/aliyun-sls/zipkin-ingester/converter"
 	"github.com/aliyun-sls/zipkin-ingester/exporter"
-	"github.com/openzipkin/zipkin-go/proto/zipkin_proto3"
+	"github.com/aliyun-sls/zipkin-ingester/receiver"
 	"go.uber.org/zap"
 	"os"
 	"os/signal"
@@ -49,18 +49,24 @@ func main() {
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
 
-	var ingest consumer.Ingester
+	var ingest receiver.Ingester
+	var zipkinClient exporter.ZipkinDataExporter
 	var err error
 	run := true
 
 	config := readConfiguration(sugar)
-	zipkinClient := exporter.NewZipkinExporter(config, sugar)
-	if ingest, err = consumer.NewIngester(config, sugar); err != nil {
+
+	if zipkinClient, err = exporter.NewGrpcOtelDataExporter(config); err != nil {
+		sugar.Errorw("Failed to connection sls backend", "exception", err)
+		os.Exit(1)
+	}
+
+	if ingest, err = receiver.NewIngester(config, sugar); err != nil {
 		sugar.Error("Failed to init kafka.", "exception", err)
 		os.Exit(1)
-	} else {
-		defer ingest.Close()
 	}
+
+	defer ingest.Close()
 
 	for run {
 		select {
@@ -71,17 +77,23 @@ func main() {
 			data, e := ingest.IngestTrace(sugar)
 
 			if e == nil && audit {
-				if spans, e1 := zipkin_proto3.ParseSpans(data, false); e1 != nil {
-					sugar.Warn("Failed to parse spans ", " Exception ", e1, " originData:", hex.EncodeToString(data))
+				if spans, e1 := converter.ParseSpans(data, false); e1 != nil {
+					sugar.Warnw("Failed to parse spans ", "Exception", e1, "originData", hex.EncodeToString(data))
 				} else {
 					for _, span := range spans {
-						sugar.Info("Receive Span", "TraceID: ", span.TraceID, " SpanID: ", span.ID, " parentSpanID: ", span.ParentID, " name: ", span.Name, "originData:", hex.EncodeToString(data))
+						sugar.Infow("Receive Span", "TraceID", span.TraceID, "SpanID", span.ID, "parentSpanID", span.ParentID, "name", span.Name, "originData", hex.EncodeToString(data))
 					}
 				}
 			}
 
-			if e == nil && data != nil {
-				zipkinClient.SendData(data, sugar)
+			if len(data) == 0 || e != nil {
+				continue
+			}
+
+			if err := zipkinClient.SendZipkinData(data); err != nil {
+				sugar.Warnw("Failed to send zipking data", "Exception", err, "data", hex.EncodeToString(data))
+			} else {
+				sugar.Infow("Send data successfully")
 			}
 		}
 	}
@@ -114,7 +126,7 @@ func readConfiguration(sugared *zap.SugaredLogger) *configure.Configuration {
 
 	checkParameters(sugared, config)
 
-	sugared.Info("Configuration:",
+	sugared.Infow("Configuration:",
 		"BootstrapServers", bootstrapServers,
 		"Topic", config.Topic,
 		"Project", config.Project,
