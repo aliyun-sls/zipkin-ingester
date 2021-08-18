@@ -86,6 +86,10 @@ func main() {
 				}
 			}
 
+			if len(data) == 0 || e != nil {
+				continue
+			}
+
 			if err := zipkinClient.SendZipkinData(data); err != nil {
 				sugar.Warnw("Failed to send zipking data", "Exception", err, "data", hex.EncodeToString(data))
 			} else {
@@ -122,7 +126,7 @@ func readConfiguration(sugared *zap.SugaredLogger) *configure.Configuration {
 
 	checkParameters(sugared, config)
 
-	sugared.Info("Configuration:",
+	sugared.Infow("Configuration:",
 		"BootstrapServers", bootstrapServers,
 		"Topic", config.Topic,
 		"Project", config.Project,
