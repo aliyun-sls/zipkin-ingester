@@ -50,17 +50,23 @@ func main() {
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
 
 	var ingest receiver.Ingester
+	var zipkinClient exporter.ZipkinDataExporter
 	var err error
 	run := true
 
 	config := readConfiguration(sugar)
-	zipkinClient := exporter.NewZipkinExporter(config, sugar)
+
+	if zipkinClient, err = exporter.NewGrpcOtelDataExporter(config); err != nil {
+		sugar.Errorw("Failed to connection sls backend", "exception", err)
+		os.Exit(1)
+	}
+
 	if ingest, err = receiver.NewIngester(config, sugar); err != nil {
 		sugar.Error("Failed to init kafka.", "exception", err)
 		os.Exit(1)
-	} else {
-		defer ingest.Close()
 	}
+
+	defer ingest.Close()
 
 	for run {
 		select {
@@ -80,10 +86,10 @@ func main() {
 				}
 			}
 
-			if spans, e1 := converter.ParseSpans(data, false); e1 != nil {
-				zipkinClient.SendData(spans, sugar)
+			if err := zipkinClient.SendZipkinData(data); err != nil {
+				sugar.Warnw("Failed to send zipking data", "Exception", err, "data", hex.EncodeToString(data))
 			} else {
-				sugar.Infow("Failed to parse span", "Exception", e1, hex.EncodeToString(data))
+				sugar.Infow("Send data successfully")
 			}
 		}
 	}
