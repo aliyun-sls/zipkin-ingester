@@ -5,9 +5,9 @@ import (
 	"flag"
 	"fmt"
 	"github.com/aliyun-sls/zipkin-ingester/configure"
+	"github.com/aliyun-sls/zipkin-ingester/converter"
 	"github.com/aliyun-sls/zipkin-ingester/exporter"
 	"github.com/aliyun-sls/zipkin-ingester/receiver"
-	"github.com/openzipkin/zipkin-go/proto/zipkin_proto3"
 	"go.uber.org/zap"
 	"os"
 	"os/signal"
@@ -71,17 +71,19 @@ func main() {
 			data, e := ingest.IngestTrace(sugar)
 
 			if e == nil && audit {
-				if spans, e1 := zipkin_proto3.ParseSpans(data, false); e1 != nil {
-					sugar.Warn("Failed to parse spans ", " Exception ", e1, " originData:", hex.EncodeToString(data))
+				if spans, e1 := converter.ParseSpans(data, false); e1 != nil {
+					sugar.Warnw("Failed to parse spans ", "Exception", e1, "originData", hex.EncodeToString(data))
 				} else {
 					for _, span := range spans {
-						sugar.Info("Receive Span", "TraceID: ", span.TraceID, " SpanID: ", span.ID, " parentSpanID: ", span.ParentID, " name: ", span.Name, "originData:", hex.EncodeToString(data))
+						sugar.Infow("Receive Span", "TraceID", span.TraceID, "SpanID", span.ID, "parentSpanID", span.ParentID, "name", span.Name, "originData", hex.EncodeToString(data))
 					}
 				}
 			}
 
-			if e == nil && data != nil {
-				zipkinClient.SendData(data, sugar)
+			if spans, e1 := converter.ParseSpans(data, false); e1 != nil {
+				zipkinClient.SendData(spans, sugar)
+			} else {
+				sugar.Infow("Failed to parse span", "Exception", e1, hex.EncodeToString(data))
 			}
 		}
 	}

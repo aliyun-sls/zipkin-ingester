@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/aliyun-sls/zipkin-ingester/configure"
+	zipkinmodel "github.com/openzipkin/zipkin-go/model"
 	"go.uber.org/zap"
 	"io"
 	"net/http"
@@ -22,7 +23,7 @@ type zipkinDataExporterImpl struct {
 	configure  *configure.Configuration
 }
 
-func (z zipkinDataExporterImpl) SendData(data []byte, sugar *zap.SugaredLogger) error {
+func (z zipkinDataExporterImpl) SendData(data []*zipkinmodel.SpanModel, sugar *zap.SugaredLogger) error {
 	if data == nil || len(data) == 0 {
 		return nil
 	}
