@@ -5,8 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/aliyun-sls/zipkin-ingester/configure"
-	"github.com/aliyun-sls/zipkin-ingester/consumer"
 	"github.com/aliyun-sls/zipkin-ingester/exporter"
+	"github.com/aliyun-sls/zipkin-ingester/receiver"
 	"github.com/openzipkin/zipkin-go/proto/zipkin_proto3"
 	"go.uber.org/zap"
 	"os"
@@ -49,13 +49,13 @@ func main() {
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
 
-	var ingest consumer.Ingester
+	var ingest receiver.Ingester
 	var err error
 	run := true
 
 	config := readConfiguration(sugar)
 	zipkinClient := exporter.NewZipkinExporter(config, sugar)
-	if ingest, err = consumer.NewIngester(config, sugar); err != nil {
+	if ingest, err = receiver.NewIngester(config, sugar); err != nil {
 		sugar.Error("Failed to init kafka.", "exception", err)
 		os.Exit(1)
 	} else {

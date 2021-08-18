@@ -1,15 +1,10 @@
-package consumer
+package receiver
 
 import (
 	"github.com/aliyun-sls/zipkin-ingester/configure"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"go.uber.org/zap"
 )
-
-type Ingester interface {
-	IngestTrace(*zap.SugaredLogger) ([]byte, error)
-	Close()
-}
 
 type ingesterImpl struct {
 	consumer *kafka.Consumer
