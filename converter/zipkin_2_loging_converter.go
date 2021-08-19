@@ -47,7 +47,7 @@ func ToSLSSpan(span *zipkinmodel.SpanModel) ([]*slsSdk.LogContent, error) {
 	contents = appendAttributeToLogContent(contents, EndTime, cast.ToString((span.Timestamp.UnixNano()+span.Duration.Nanoseconds())/1000))
 	contents = appendAttributeToLogContent(contents, ServiceName, extractLocalServiceName(span))
 	contents = appendAttributeToLogContent(contents, StatusCode, tags[TagStatusCode])
-	contents = appendAttributeToLogContent(contents, "Kind", string(span.Kind))
+	contents = appendAttributeToLogContent(contents, "kind", string(span.Kind))
 	contents = appendAttributeToLogContent(contents, TraceID, span.TraceID.String())
 	contents = appendAttributeToLogContent(contents, SpanID, span.ID.String())
 
