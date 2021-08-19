@@ -41,15 +41,26 @@ func spanToLog(span *zipkinmodel.SpanModel) (*slsSdk.Log, error) {
 func ToSLSSpan(span *zipkinmodel.SpanModel) ([]*slsSdk.LogContent, error) {
 	contents := make([]*slsSdk.LogContent, 0)
 	tags := copySpanTags(span.Tags)
+	localServiceName := extractLocalServiceName(span)
 	contents = appendAttributeToLogContent(contents, OperationName, span.Name)
 	contents = appendAttributeToLogContent(contents, StartTime, cast.ToString(span.Timestamp.UnixNano()/1000))
 	contents = appendAttributeToLogContent(contents, Duration, cast.ToString(span.Duration.Nanoseconds()/1000))
 	contents = appendAttributeToLogContent(contents, EndTime, cast.ToString((span.Timestamp.UnixNano()+span.Duration.Nanoseconds())/1000))
-	contents = appendAttributeToLogContent(contents, ServiceName, extractLocalServiceName(span))
+	contents = appendAttributeToLogContent(contents, ServiceName, localServiceName)
 	contents = appendAttributeToLogContent(contents, StatusCode, tags[TagStatusCode])
-	contents = appendAttributeToLogContent(contents, "kind", string(span.Kind))
+	contents = appendAttributeToLogContent(contents, SpanKind, strings.ToLower(string(span.Kind)))
 	contents = appendAttributeToLogContent(contents, TraceID, span.TraceID.String())
 	contents = appendAttributeToLogContent(contents, SpanID, span.ID.String())
+
+	if resource, err := extractResource(tags, localServiceName); err == nil {
+		contents = appendAttributeToLogContent(contents, Resource, string(resource))
+	}
+
+	if tags[TagStatusCode] != "" {
+		contents = appendAttributeToLogContent(contents, StatusCode, tags[TagStatusCode])
+	} else {
+		contents = appendAttributeToLogContent(contents, StatusCode, "UNSET")
+	}
 
 	if span.ParentID != nil {
 		contents = appendAttributeToLogContent(contents, ParentSpanID, span.ParentID.String())
@@ -70,6 +81,35 @@ func ToSLSSpan(span *zipkinmodel.SpanModel) ([]*slsSdk.LogContent, error) {
 	}
 
 	return contents, nil
+}
+
+func extractResource(tags map[string]string, localServiceName string) ([]byte, error) {
+	resources := make(map[string]string)
+	resources[AttributeServiceName] = localServiceName
+
+	if len(tags) == 0 {
+		return json.Marshal(resources)
+	}
+
+	snSource := tags[TagServiceNameSource]
+	if snSource == "" {
+		resources[AttributeServiceName] = localServiceName
+	} else {
+		resources[snSource] = localServiceName
+	}
+	delete(tags, TagServiceNameSource)
+
+	for key := range getNonSpanAttributes() {
+		if key == TagInstrumentationName || key == TagInstrumentationVersion {
+			continue
+		}
+		if value, ok := tags[key]; ok {
+			resources[key] = value
+			delete(tags, key)
+		}
+	}
+
+	return json.Marshal(resources)
 }
 
 func extractLogs(zspan *zipkinmodel.SpanModel) ([]byte, error) {
