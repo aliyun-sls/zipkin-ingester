@@ -53,6 +53,8 @@ func ToSLSSpan(span *zipkinmodel.SpanModel) ([]*slsSdk.LogContent, error) {
 
 	if span.ParentID != nil {
 		contents = appendAttributeToLogContent(contents, ParentSpanID, span.ParentID.String())
+	} else {
+		contents = appendAttributeToLogContent(contents, ParentSpanID, "")
 	}
 
 	if links, err := extractLinks(tags); err == nil {
