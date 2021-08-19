@@ -37,7 +37,7 @@ export AUDIT_MODE=false
 |ACCESS_SECRET| 阿里云账号AccessKey Secret。<br/>建议您使用只具备日志服务Project写入权限的RAM用户的AccessKey。|
 |PROJECT_NAME|日志服务Project名称。 |
 |INSTANCE|Trace服务实例名称。 |
-|ENDPOINT|接入地址，格式为${project}.${region-endpoint}:10010，其中：<br/> ${project}：日志服务Project名称。<br/>${region-endpoint}：Project访问域名，支持公网和阿里云内网（经典网络、VPC）。 |
+|ENDPOINT|接入地址，格式为${region-endpoint}，其中：<br/>${region-endpoint}：Project访问域名，支持公网和阿里云内网（经典网络、VPC）。 |
 |BOOTSTRAP_SERVICE|Kafka服务地址。 |
 |CONSUMER_GROUP|kafka消费组。 |
 |TOPIC| Kafka Topic |

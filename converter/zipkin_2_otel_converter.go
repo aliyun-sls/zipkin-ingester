@@ -217,7 +217,7 @@ func zTagsToSpanLinks(tags map[string]string) ([]*tracepb.Span_Link, error) {
 		}
 		link.DroppedAttributesCount = uint32(dropped)
 	}
-	return nil, nil
+	return links, nil
 }
 
 func populateSpanEvents(zspan *zipkinmodel.SpanModel) (data []*tracepb.Span_Event, e error) {

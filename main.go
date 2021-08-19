@@ -56,7 +56,7 @@ func main() {
 
 	config := readConfiguration(sugar)
 
-	if zipkinClient, err = exporter.NewGrpcOtelDataExporter(config); err != nil {
+	if zipkinClient, err = exporter.NewSdkDataExporter(config); err != nil {
 		sugar.Errorw("Failed to connection sls backend", "exception", err)
 		os.Exit(1)
 	}
