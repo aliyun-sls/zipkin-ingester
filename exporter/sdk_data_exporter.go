@@ -15,6 +15,10 @@ type SdkDataExporter struct {
 	traceLog string
 }
 
+func (s *SdkDataExporter) Close() {
+	s.client.Close()
+}
+
 func NewSdkDataExporter(configure *configure.Configuration) (ZipkinDataExporter, error) {
 	return &SdkDataExporter{
 		client: &slsSdk.Client{

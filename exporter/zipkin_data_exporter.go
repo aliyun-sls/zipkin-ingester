@@ -11,5 +11,6 @@ type ZipkinDataExporter interface {
 	SendOtelData(data []*tracepb.ResourceSpans) error
 
 	SendZipkinData(data []byte) error
-}
 
+	Close()
+}

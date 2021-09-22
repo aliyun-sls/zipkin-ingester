@@ -15,6 +15,9 @@ type grpcOtelDataExporter struct {
 	client otlptrace.Client
 }
 
+func (g *grpcOtelDataExporter) Close() {
+}
+
 func (g *grpcOtelDataExporter) SendZipkinData(data []byte) error {
 	if spans, e1 := converter.ParseSpans(data, false); e1 == nil {
 		return g.SendData(spans)

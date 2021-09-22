@@ -43,7 +43,6 @@ func (i ingesterImpl) IngestTrace(suager *zap.SugaredLogger) ([]byte, error) {
 
 	switch e := ev.(type) {
 	case *kafka.Message:
-		suager.Infow("Received zipkin data.", "data length", len(e.Value))
 		return e.Value, nil
 	case kafka.Error:
 		suager.Warnw("Receive a kafka error.", "Kafka error code", e.Code(), "exception", e)

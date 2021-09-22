@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	slsSdk "github.com/aliyun/aliyun-log-go-sdk"
+	"github.com/aliyun/aliyun-log-go-sdk/producer"
 	"github.com/gogo/protobuf/proto"
 	zipkinmodel "github.com/openzipkin/zipkin-go/model"
 	"github.com/spf13/cast"
@@ -25,6 +26,23 @@ func ToSLSSpans(spans []*zipkinmodel.SpanModel) (lg *slsSdk.LogGroup, err error)
 		}
 	}
 	return lg, nil
+}
+
+func SendToSls(spans []*zipkinmodel.SpanModel, instance *producer.Producer, project string, log string) error {
+	for _, span := range spans {
+		go convertAndSend(span, instance, project, log)
+	}
+
+	return nil
+}
+
+func convertAndSend(span *zipkinmodel.SpanModel, instance *producer.Producer, project string, traceLogstore string) {
+	if log, err := spanToLog(span); err == nil {
+		error := instance.SendLog(project, traceLogstore, "0.0.0.0", "", log)
+		if error != nil {
+			fmt.Printf("%v", error)
+		}
+	}
 }
 
 func spanToLog(span *zipkinmodel.SpanModel) (*slsSdk.Log, error) {

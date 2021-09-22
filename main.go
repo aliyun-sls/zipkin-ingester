@@ -56,7 +56,7 @@ func main() {
 
 	config := readConfiguration(sugar)
 
-	if zipkinClient, err = exporter.NewSdkDataExporter(config); err != nil {
+	if zipkinClient, err = exporter.NewSdkProducerExporter(config); err != nil {
 		sugar.Errorw("Failed to connection sls backend", "exception", err)
 		os.Exit(1)
 	}
@@ -67,6 +67,7 @@ func main() {
 	}
 
 	defer ingest.Close()
+	defer zipkinClient.Close()
 
 	for run {
 		select {
@@ -92,8 +93,6 @@ func main() {
 
 			if err := zipkinClient.SendZipkinData(data); err != nil {
 				sugar.Warnw("Failed to send zipking data", "Exception", err, "data", hex.EncodeToString(data))
-			} else {
-				sugar.Infow("Send data successfully")
 			}
 		}
 	}
