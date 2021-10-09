@@ -2,6 +2,7 @@ package converter
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	slsSdk "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/aliyun/aliyun-log-go-sdk/producer"
@@ -42,6 +43,8 @@ func convertAndSend(span *zipkinmodel.SpanModel, instance *producer.Producer, ca
 		if error != nil {
 			fmt.Printf("%v", error)
 		}
+	} else {
+		fmt.Printf("%v, %v", err, span)
 	}
 }
 
@@ -50,6 +53,11 @@ func spanToLog(span *zipkinmodel.SpanModel) (*slsSdk.Log, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if uint32(span.Timestamp.Unix()) <= 0 {
+		return nil, errors.New("time is zero")
+	}
+
 	return &slsSdk.Log{
 		Time:     proto.Uint32(uint32(span.Timestamp.Unix())),
 		Contents: contents,
