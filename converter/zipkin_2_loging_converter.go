@@ -28,17 +28,17 @@ func ToSLSSpans(spans []*zipkinmodel.SpanModel) (lg *slsSdk.LogGroup, err error)
 	return lg, nil
 }
 
-func SendToSls(spans []*zipkinmodel.SpanModel, instance *producer.Producer, project string, log string) error {
+func SendToSls(spans []*zipkinmodel.SpanModel, instance *producer.Producer, callback producer.CallBack, project string, log string) error {
 	for _, span := range spans {
-		go convertAndSend(span, instance, project, log)
+		go convertAndSend(span, instance, callback, project, log)
 	}
 
 	return nil
 }
 
-func convertAndSend(span *zipkinmodel.SpanModel, instance *producer.Producer, project string, traceLogstore string) {
+func convertAndSend(span *zipkinmodel.SpanModel, instance *producer.Producer, callback producer.CallBack, project string, traceLogstore string) {
 	if log, err := spanToLog(span); err == nil {
-		error := instance.SendLog(project, traceLogstore, "0.0.0.0", "", log)
+		error := instance.SendLogWithCallBack(project, traceLogstore, "0.0.0.0", "", log, callback)
 		if error != nil {
 			fmt.Printf("%v", error)
 		}

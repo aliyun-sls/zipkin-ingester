@@ -13,6 +13,17 @@ type SdkProducerExporter struct {
 	project          string
 	traceLog         string
 	producerInstance *producer.Producer
+	callback         producer.CallBack
+}
+
+type CallbackImpl struct {
+}
+
+func (c CallbackImpl) Success(result *producer.Result) {
+}
+
+func (c CallbackImpl) Fail(result *producer.Result) {
+	fmt.Printf("SendTraceFailed : %s, %s, %s, %v", result.GetErrorCode(), result.GetRequestId(), result.GetErrorMessage(), result.GetTimeStampMs())
 }
 
 func (s *SdkProducerExporter) Close() {
@@ -30,12 +41,12 @@ func NewSdkProducerExporter(configure *configure.Configuration) (ZipkinDataExpor
 		producerInstance: producerInstance,
 		project:          configure.Project,
 		traceLog:         fmt.Sprintf("%s-traces", configure.Instance),
+		callback:         &CallbackImpl{},
 	}, nil
 }
 
 func (s SdkProducerExporter) SendData(data []*zipkinmodel.SpanModel) error {
-	converter.SendToSls(data, s.producerInstance, s.project, s.traceLog)
-	return nil
+	return converter.SendToSls(data, s.producerInstance, s.callback, s.project, s.traceLog)
 }
 
 func (s SdkProducerExporter) SendOtelData(data []*tracepb.ResourceSpans) error {
