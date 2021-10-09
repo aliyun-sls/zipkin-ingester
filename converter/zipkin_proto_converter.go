@@ -72,6 +72,10 @@ func protoSpanToModelSpan(s *zipkin_proto3.Span, debugWasSet bool) (*zipkinmodel
 		Annotations:    protoAnnotationsToModelAnnotations(s.Annotations),
 	}
 
+	if uint32(zms.Timestamp.Unix()) <= 0 {
+		return nil, errors.New("StartTime is zero")
+	}
+
 	return zms, nil
 }
 
