@@ -55,7 +55,7 @@ func spanToLog(span *zipkinmodel.SpanModel) (*slsSdk.Log, error) {
 	}
 
 	if uint32(span.Timestamp.Unix()) <= 0 {
-		return nil, errors.New("time is zero")
+		return nil, errors.New(fmt.Sprintf("time is zero. %v", span.Timestamp.Unix()))
 	}
 
 	return &slsSdk.Log{
