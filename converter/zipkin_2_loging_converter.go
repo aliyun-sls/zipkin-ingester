@@ -39,7 +39,6 @@ func SendToSls(spans []*zipkinmodel.SpanModel, instance *producer.Producer, call
 
 func convertAndSend(span *zipkinmodel.SpanModel, instance *producer.Producer, callback producer.CallBack, project string, traceLogstore string) {
 	if log, err := spanToLog(span); err == nil {
-		fmt.Printf("%v\n", log)
 		error := instance.SendLogWithCallBack(project, traceLogstore, "0.0.0.0", "", log, callback)
 		if error != nil {
 			fmt.Printf("%v", error)
