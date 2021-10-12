@@ -22,6 +22,7 @@ func ParseSpans(protoBlob []byte, debugWasSet bool) (zss []*zipkinmodel.SpanMode
 	for _, zps := range listOfSpans.Spans {
 		zms, err := protoSpanToModelSpan(zps, debugWasSet)
 		if err != nil {
+			fmt.Printf("Failed to convert span, %s\n", err.Error())
 			continue
 		}
 		zss = append(zss, zms)
