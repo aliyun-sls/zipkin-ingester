@@ -13,6 +13,8 @@ import (
 	zipkinmodel "github.com/openzipkin/zipkin-go/model"
 )
 
+var ZERO_TIME = errors.New("zero_time")
+
 // Copy from zipking-go
 func ParseSpans(protoBlob []byte, debugWasSet bool) (zss []*zipkinmodel.SpanModel, err error) {
 	var listOfSpans zipkin_proto3.ListOfSpans
@@ -20,12 +22,13 @@ func ParseSpans(protoBlob []byte, debugWasSet bool) (zss []*zipkinmodel.SpanMode
 		return nil, err
 	}
 	for _, zps := range listOfSpans.Spans {
-		zms, err := protoSpanToModelSpan(zps, debugWasSet)
-		if err != nil {
-			fmt.Printf("Failed to convert span, %s\n", err.Error())
-			continue
+		if zms, err := protoSpanToModelSpan(zps, debugWasSet); err == nil {
+			zss = append(zss, zms)
+		} else {
+			if !errors.Is(err, ZERO_TIME) {
+				return nil, err
+			}
 		}
-		zss = append(zss, zms)
 	}
 	return zss, nil
 }
@@ -74,7 +77,7 @@ func protoSpanToModelSpan(s *zipkin_proto3.Span, debugWasSet bool) (*zipkinmodel
 	}
 
 	if uint32(zms.Timestamp.Unix()) <= 0 {
-		return nil, errors.New("StartTime is zero")
+		return nil, ZERO_TIME
 	}
 
 	return zms, nil
