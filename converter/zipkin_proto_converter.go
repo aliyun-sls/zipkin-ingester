@@ -2,7 +2,6 @@ package converter
 
 import (
 	"encoding/binary"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/openzipkin/zipkin-go/proto/zipkin_proto3"
@@ -23,7 +22,6 @@ func ParseSpans(protoBlob []byte, debugWasSet bool) (zss []*zipkinmodel.SpanMode
 	for _, zps := range listOfSpans.Spans {
 		zms, err := protoSpanToModelSpan(zps, debugWasSet)
 		if err != nil {
-			fmt.Printf("Failed to convert span. %s\n", hex.EncodeToString(protoBlob))
 			continue
 		}
 		zss = append(zss, zms)
