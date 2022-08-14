@@ -23,6 +23,7 @@ export BOOTSTRAP_SERVICE=<YOUR_BOOTSTRAP_SERVICE>
 export CONSUMER_GROUP=<YOUR_CONSUMER_GROUP>
 export TOPIC=<YOUR_TOPIC>
 export AUDIT_MODE=false
+export PROTOCOL=json # or protobuf
 
 ./zipkin-ingester -project ${PROJECT} -instance ${INSTANCE} -access_key ${ACCESS_KEY} \
 -access_secret ${ACCESS_SECRET} -endpoint ${ENDPOINT} -kafka_bootstrap_services ${BOOTSTRAP_SERVICE} \

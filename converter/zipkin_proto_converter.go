@@ -4,9 +4,10 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/openzipkin/zipkin-go/proto/zipkin_proto3"
 	"net"
 	"time"
+
+	"github.com/openzipkin/zipkin-go/proto/zipkin_proto3"
 
 	"google.golang.org/protobuf/proto"
 
@@ -15,8 +16,11 @@ import (
 
 var ZERO_TIME = errors.New("zero_time")
 
+type ProtobufConvertor struct {
+}
+
 // Copy from zipking-go
-func ParseSpans(protoBlob []byte, debugWasSet bool) (zss []*zipkinmodel.SpanModel, err error) {
+func (c *ProtobufConvertor) ParseSpans(protoBlob []byte, debugWasSet bool) (zss []*zipkinmodel.SpanModel, err error) {
 	var listOfSpans zipkin_proto3.ListOfSpans
 	if err := proto.Unmarshal(protoBlob, &listOfSpans); err != nil {
 		return nil, err

@@ -4,16 +4,17 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
-	"github.com/aliyun-sls/zipkin-ingester/configure"
-	"github.com/aliyun-sls/zipkin-ingester/converter"
-	"github.com/aliyun-sls/zipkin-ingester/exporter"
-	"github.com/aliyun-sls/zipkin-ingester/receiver"
-	"go.uber.org/zap"
 	"os"
 	"os/signal"
 	"strconv"
 	"strings"
 	"syscall"
+
+	"github.com/aliyun-sls/zipkin-ingester/configure"
+	"github.com/aliyun-sls/zipkin-ingester/converter"
+	"github.com/aliyun-sls/zipkin-ingester/exporter"
+	"github.com/aliyun-sls/zipkin-ingester/receiver"
+	"go.uber.org/zap"
 )
 
 var (
@@ -26,6 +27,7 @@ var (
 	accessSecret     string
 	endpoint         string
 	audit            bool
+	protocol         string
 )
 
 func init() {
@@ -37,6 +39,7 @@ func init() {
 	flag.StringVar(&bootstrapServers, "kafka_bootstrap_services", os.Getenv("BOOTSTRAP_SERVICE"), "The bootstrap services")
 	flag.StringVar(&consumerGroup, "kafka_consumer_group", os.Getenv("CONSUMER_GROUP"), "The consumer group")
 	flag.StringVar(&topic, "kafka_topic", os.Getenv("TOPIC"), "The kafka topic")
+	flag.StringVar(&protocol, "protocol", os.Getenv("PROTOCOL"), "protocol")
 	flag.Parse()
 }
 
@@ -69,6 +72,7 @@ func main() {
 	defer ingest.Close()
 	defer zipkinClient.Close()
 
+	converter := converter.NewConverter(config.Protocol)
 	for run {
 		select {
 		case sig := <-sigchan:
@@ -108,19 +112,20 @@ func getAuditMode() bool {
 func readConfiguration(sugared *zap.SugaredLogger) *configure.Configuration {
 	config := &configure.Configuration{
 		BootstrapServers: bootstrapServers,
-		AutoOffsetRest:   "latest",
-		Topic:            strings.Split(topic, ","),
-		Project:          project,
-		Instance:         instance,
-		AccessKey:        accessKey,
-		AccessSecret:     accessSecret,
-		Endpoint:         endpoint,
 		GroupID: func(consumerGroup string) string {
 			if consumerGroup == "" {
 				return "DEFAULT_CONSUMER_GROUP"
 			}
 			return consumerGroup
 		}(consumerGroup),
+		AutoOffsetRest: "latest",
+		Topic:          strings.Split(topic, ","),
+		Project:        project,
+		Instance:       instance,
+		AccessKey:      accessKey,
+		AccessSecret:   accessSecret,
+		Endpoint:       endpoint,
+		Protocol:       protocol,
 	}
 
 	checkParameters(sugared, config)
@@ -132,6 +137,7 @@ func readConfiguration(sugared *zap.SugaredLogger) *configure.Configuration {
 		"Instance", config.Instance,
 		"AccessKey", config.AccessKey,
 		"Endpoint", config.Endpoint,
+		"Protocol", config.Protocol,
 	)
 	return config
 }
@@ -170,5 +176,9 @@ func checkParameters(sugared *zap.SugaredLogger, config *configure.Configuration
 	if config.Endpoint == "" {
 		sugared.Warn("The endpoint is empty.")
 		panic("The endpoint is empty")
+	}
+
+	if config.Protocol == "" {
+		config.Protocol = "protobuf"
 	}
 }

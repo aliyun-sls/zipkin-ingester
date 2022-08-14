@@ -13,6 +13,7 @@ type Configuration struct {
 	AccessKey    string
 	AccessSecret string
 	Endpoint     string
+	Protocol     string
 }
 
 func (c *Configuration) InitFromViper(v *viper.Viper) {
@@ -25,4 +26,5 @@ func (c *Configuration) InitFromViper(v *viper.Viper) {
 	c.AccessKey = v.GetString("access_key")
 	c.AccessSecret = v.GetString("access_secret")
 	c.Endpoint = v.GetString("endpoint")
+	c.Protocol = v.GetString("protocol")
 }
