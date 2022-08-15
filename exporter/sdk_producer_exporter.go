@@ -53,7 +53,7 @@ func (s SdkProducerExporter) SendOtelData(data []*tracepb.ResourceSpans) error {
 	panic("Unsuppport")
 }
 
-func (s SdkProducerExporter) SendZipkinData(data []byte) error {
+func (s SdkProducerExporter) SendZipkinData(converter converter.Converter, data []byte) error {
 	if spans, err := converter.ParseSpans(data, false); err == nil {
 		return s.SendData(spans)
 	} else {

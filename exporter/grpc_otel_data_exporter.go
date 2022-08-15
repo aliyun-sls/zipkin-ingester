@@ -18,7 +18,7 @@ type grpcOtelDataExporter struct {
 func (g *grpcOtelDataExporter) Close() {
 }
 
-func (g *grpcOtelDataExporter) SendZipkinData(data []byte) error {
+func (g *grpcOtelDataExporter) SendZipkinData(converter converter.Converter, data []byte) error {
 	if spans, e1 := converter.ParseSpans(data, false); e1 == nil {
 		return g.SendData(spans)
 	} else {

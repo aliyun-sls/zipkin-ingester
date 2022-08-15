@@ -43,7 +43,7 @@ func (s SdkDataExporter) SendOtelData(data []*tracepb.ResourceSpans) error {
 	panic("Unsupported")
 }
 
-func (s SdkDataExporter) SendZipkinData(data []byte) error {
+func (s SdkDataExporter) SendZipkinData(converter converter.Converter, data []byte) error {
 	if spans, err := converter.ParseSpans(data, false); err == nil {
 		return s.SendData(spans)
 	} else {

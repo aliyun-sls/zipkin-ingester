@@ -95,7 +95,7 @@ func main() {
 				continue
 			}
 
-			if err := zipkinClient.SendZipkinData(data); err != nil {
+			if err := zipkinClient.SendZipkinData(converter, data); err != nil {
 				sugar.Warnw("Failed to send zipking data", "Exception", err, "data", hex.EncodeToString(data))
 			}
 		}
